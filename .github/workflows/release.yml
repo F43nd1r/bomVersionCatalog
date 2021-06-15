@@ -1,0 +1,29 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Build release
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          job-id: jdk11
+          arguments: build publishPlugins
+          build-root-directory: bom-version-catalog
+          properties: |
+            gradle.publish.key=${{ secrets.GRADLE_KEY }}
+            gradle.publish.secret=${{ secrets.GRADLE_SECRET }}
