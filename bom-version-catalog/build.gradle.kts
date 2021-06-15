@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.faendir.gradle"
-version = "1.0-SNAPSHOT"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -20,6 +20,8 @@ dependencies {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -29,9 +31,19 @@ gradlePlugin {
     plugins {
         create("BomVersionCatalogPlugin") {
             id = "com.faendir.gradle.bom-version-catalog"
+            displayName = "Bom to version catalog plugin"
+            description = "Allows to import boms as version catalogs"
             implementationClass = "com.faendir.gradle.BomVersionCatalogPlugin"
         }
     }
 }
+
+pluginBundle {
+    website = "https://github.com/F43nd1r/bomVersionCatalog"
+    vcsUrl = "https://github.com/F43nd1r/bomVersionCatalog"
+    tags = listOf("bom", "version-catalog")
+}
+
+
 
 project.configurations.detachedConfiguration()
