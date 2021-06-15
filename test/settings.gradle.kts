@@ -1,4 +1,4 @@
-import com.faendir.gradle.createFromBom
+import com.faendir.gradle.createWithBomSupport
 
 buildscript {
     repositories {
@@ -6,7 +6,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath("com.faendir.gradle:bom-version-catalog:1.0-SNAPSHOT")
+        classpath("com.faendir.gradle:bom-version-catalog:1.0.2")
     }
 }
 apply(plugin = "com.faendir.gradle.bom-version-catalog")
@@ -15,6 +15,9 @@ dependencyResolutionManagement {
         mavenCentral()
     }
     versionCatalogs {
-        createFromBom("spring", "org.springframework.boot:spring-boot-dependencies:2.5.0")
+        createWithBomSupport("libs") {
+            //fromBom("org.springframework.boot:spring-boot-dependencies:2.5.0")
+            fromBomAlias("springBom")
+        }
     }
 }

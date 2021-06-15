@@ -1,0 +1,6 @@
+[versions]
+springBoot = "2.5.1"
+querydsl = "5.0.0-SNAPSHOT"
+
+[libraries]
+springBom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
