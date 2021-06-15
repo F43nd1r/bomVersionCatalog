@@ -3,7 +3,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("com.gradle.plugin-publish") version "0.15.0"
-    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc3"
+    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
 group = "com.faendir.gradle"
