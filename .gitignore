@@ -1,5 +1,4 @@
 # Project exclude paths
-/bom-version-catalog/.gradle/
-/bom-version-catalog/build/
-/test/.gradle/
-/test/build/
+.gradle
+build
+.idea
