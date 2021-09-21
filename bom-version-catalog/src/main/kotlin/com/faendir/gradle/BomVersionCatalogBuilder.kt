@@ -100,7 +100,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String): String {
         val alias: String = dependency.groupId.toCamelCase() + "-" + dependency.artifactId.toCamelCase() +
-                if (dependency.artifactId.endsWithAny("bundle", "bundles", "version", "versions", ignoreCase = true)) "0" else ""
+                if (dependency.artifactId.endsWithAny("bundle", "bundles", "version", "versions", "plugin", "plugins", ignoreCase = true)) "0" else ""
         if (!existingAliases.contains(alias)) {
             existingAliases.add(alias)
             val dep = alias(alias).to(dependency.groupId, dependency.artifactId)

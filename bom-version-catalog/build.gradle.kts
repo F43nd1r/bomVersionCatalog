@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.30"
     `java-gradle-plugin`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "0.15.0"
+    id("com.gradle.plugin-publish") version "0.16.0"
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
