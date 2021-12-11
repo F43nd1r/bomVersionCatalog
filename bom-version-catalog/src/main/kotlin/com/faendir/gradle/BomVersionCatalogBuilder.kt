@@ -54,7 +54,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
             val dependency = catalog.getDependencyData(alias)
             intermediateBuilder.alias(alias).to(dependency.group, dependency.name).apply {
                 if (dependency.versionRef != null) {
-                    versionRef(dependency.versionRef!!)
+                    versionRef(dependency.versionRef)
                 } else {
                     version { dependency.version.copyTo(it) }
                 }
@@ -82,7 +82,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
         builder.bundle("bom",
             imports.map { import ->
                 val dependency = bomDownloader.download(import.getNotation(catalog)) { processBom(builder, it) }
-                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), dependency.version ?: "")
+                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), dependency.version ?: "", true)
             })
     }
 
@@ -98,13 +98,19 @@ open class BomVersionCatalogBuilder @Inject constructor(
         }
     }
 
-    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String): String {
-        val alias: String = dependency.groupId.toCamelCase() + "-" + dependency.artifactId.toCamelCase() +
-                if (dependency.artifactId.endsWithAny("bundle", "bundles", "version", "versions", "plugin", "plugins", ignoreCase = true)) "0" else ""
+    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String, withVersion: Boolean = false): String {
+        val alias: String = dependency.groupId.toCamelCase() + "-" + dependency.artifactId.toCamelCase()
         if (!existingAliases.contains(alias)) {
             existingAliases.add(alias)
             val dep = alias(alias).to(dependency.groupId, dependency.artifactId)
-            eval(dependency.version, { if (it == "project.version") dep.version(projectVersion) else dep.versionRef(it.toVersionName()) }, { dep.version(it) })
+            if (withVersion) {
+                eval(
+                    dependency.version,
+                    { if (it == "project.version") dep.version(projectVersion) else dep.versionRef(it.toVersionName()) },
+                    { dep.version(it) })
+            } else {
+                dep.withoutVersion()
+            }
         }
         return alias
     }

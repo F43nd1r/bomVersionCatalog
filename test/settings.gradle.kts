@@ -6,7 +6,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath("com.faendir.gradle:bom-version-catalog:1.0.2")
+        classpath("com.faendir.gradle:bom-version-catalog:1.1.3-1")
     }
 }
 apply(plugin = "com.faendir.gradle.bom-version-catalog")

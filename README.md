@@ -13,13 +13,13 @@ plugins {
 }
 dependencyResolutionManagement {
     repositories {
-        mavenCentral() //or whichever repository holds your boms
+        mavenCentral() // or whichever repository holds your boms
     }
     versionCatalogs {
         createWithBomSupport("libs") {
-            fromBom("com.vaadin:vaadin-bom:20.0.1") //either directly specify your bom
-            fromBomAlias("springBootBom") //or use definition in toml
-            version("mockito","3.9.1") //overrides both bom and toml
+            fromBom("com.vaadin:vaadin-bom:20.0.1") // either directly specify your bom
+            fromBomAlias("springBootBom") // or use definition in toml
+            version("mockito","3.9.1") // overrides both bom and toml
         }
     }
 }
@@ -34,4 +34,15 @@ querydsl="5.0.0-SNAPSHOT"
 
 [libraries]
 springBootBom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+```
+
+build.gradle.kts
+```kotlin
+dependencies {
+    implementation(platform(libs.orgSpringframeworkBoot.springBootDependencies)) // apply bom
+    implementation(platform(libs.springBom)) // you can also use your alias if you defined one
+    libs.bundles.bom.get().map { implementation(platform(it)) } // or apply all boms with this supplied bundle
+    
+    implementation(libs.orgSpringframeworkBoot.springBootStarterSecurity) // now you can add any dependency from your bom in a typesafe manner
+}
 ```

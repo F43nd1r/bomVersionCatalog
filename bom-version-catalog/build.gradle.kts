@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.6.0"
     `java-gradle-plugin`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "0.16.0"
+    id("com.gradle.plugin-publish") version "0.18.0"
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
@@ -13,9 +13,8 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
     implementation("net.pearx.kasechange:kasechange:1.3.0")
 }
 
