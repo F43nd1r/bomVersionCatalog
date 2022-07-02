@@ -38,7 +38,14 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     override fun version(name: String, version: String): String = delegate.version(name, version)
 
+    @Deprecated("Deprecated in Java")
     override fun alias(alias: String): VersionCatalogBuilder.AliasBuilder = delegate.alias(alias)
+
+    override fun library(alias: String, group: String, artifact: String): VersionCatalogBuilder.LibraryAliasBuilder = delegate.library(alias, group, artifact)
+
+    override fun library(alias: String, groupArtifactVersion: String) = delegate.library(alias, groupArtifactVersion)
+
+    override fun plugin(alias: String, id: String): VersionCatalogBuilder.PluginAliasBuilder = delegate.plugin(alias, id)
 
     override fun bundle(name: String, aliases: MutableList<String>) = delegate.bundle(name, aliases)
 
@@ -50,7 +57,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
         container.add(this)
         val catalog = delegate.build()
         catalog.versionAliases.forEach { alias -> intermediateBuilder.version(alias) { catalog.getVersion(alias).version.copyTo(it) } }
-        catalog.dependencyAliases.forEach { alias ->
+        catalog.libraryAliases.forEach { alias ->
             val dependency = catalog.getDependencyData(alias)
             intermediateBuilder.alias(alias).to(dependency.group, dependency.name).apply {
                 if (dependency.versionRef != null) {
