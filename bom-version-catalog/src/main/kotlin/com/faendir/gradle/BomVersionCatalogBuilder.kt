@@ -68,6 +68,16 @@ open class BomVersionCatalogBuilder @Inject constructor(
             }
         }
         catalog.bundleAliases.forEach { alias -> intermediateBuilder.bundle(alias, catalog.getBundle(alias).components) }
+        catalog.pluginAliases.forEach { alias ->
+            val plugin = catalog.getPlugin(alias)
+            intermediateBuilder.plugin(alias, catalog.getPlugin(alias).id).apply {
+                if (plugin.versionRef != null) {
+                    versionRef(plugin.versionRef!!)
+                } else {
+                    version { plugin.version.copyTo(it) }
+                }
+            }
+        }
         maybeImportBomCatalogs(catalog, intermediateBuilder)
         return intermediateBuilder.build()
     }
