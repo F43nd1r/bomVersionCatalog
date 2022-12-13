@@ -39,10 +39,6 @@ springBootBom = { module = "org.springframework.boot:spring-boot-dependencies", 
 build.gradle.kts
 ```kotlin
 dependencies {
-    implementation(platform(libs.orgSpringframeworkBoot.springBootDependencies)) // apply bom
-    implementation(platform(libs.springBom)) // you can also use your alias if you defined one
-    libs.bundles.bom.get().map { implementation(platform(it)) } // or apply all boms with this supplied bundle
-    
     implementation(libs.orgSpringframeworkBoot.springBootStarterSecurity) // now you can add any dependency from your bom in a typesafe manner
 }
 ```

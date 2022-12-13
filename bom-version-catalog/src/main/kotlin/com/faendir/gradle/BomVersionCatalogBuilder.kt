@@ -38,6 +38,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     override fun version(name: String, version: String): String = delegate.version(name, version)
 
+    @Suppress("DEPRECATION")
     @Deprecated("Deprecated in Java")
     override fun alias(alias: String): VersionCatalogBuilder.AliasBuilder = delegate.alias(alias)
 
@@ -58,26 +59,18 @@ open class BomVersionCatalogBuilder @Inject constructor(
         val catalog = delegate.build()
         catalog.versionAliases.forEach { alias -> intermediateBuilder.version(alias) { catalog.getVersion(alias).version.copyTo(it) } }
         catalog.libraryAliases.forEach { alias ->
-            val dependency = catalog.getDependencyData(alias)
-            intermediateBuilder.alias(alias).to(dependency.group, dependency.name).apply {
-                if (dependency.versionRef != null) {
-                    versionRef(dependency.versionRef)
-                } else {
-                    version { dependency.version.copyTo(it) }
-                }
+            val library = catalog.getDependencyData(alias)
+            intermediateBuilder.library(alias, library.group, library.name).apply {
+                library.versionRef?.let { versionRef(it) } ?: version { library.version.copyTo(it) }
             }
         }
-        catalog.bundleAliases.forEach { alias -> intermediateBuilder.bundle(alias, catalog.getBundle(alias).components) }
         catalog.pluginAliases.forEach { alias ->
             val plugin = catalog.getPlugin(alias)
             intermediateBuilder.plugin(alias, catalog.getPlugin(alias).id).apply {
-                if (plugin.versionRef != null) {
-                    versionRef(plugin.versionRef!!)
-                } else {
-                    version { plugin.version.copyTo(it) }
-                }
+                plugin.versionRef?.let { versionRef(it) } ?: version { plugin.version.copyTo(it) }
             }
         }
+        catalog.bundleAliases.forEach { alias -> intermediateBuilder.bundle(alias, catalog.getBundle(alias).components) }
         maybeImportBomCatalogs(catalog, intermediateBuilder)
         return intermediateBuilder.build()
     }
@@ -99,7 +92,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
         builder.bundle("bom",
             imports.map { import ->
                 val dependency = bomDownloader.download(import.getNotation(catalog)) { processBom(builder, it) }
-                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), dependency.version ?: "", true)
+                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), dependency.version ?: "")
             })
     }
 
@@ -107,27 +100,23 @@ open class BomVersionCatalogBuilder @Inject constructor(
         bom.parent?.let { parent -> bomDownloader.download(parent) { processBom(builder, it) } }
         bom.properties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
         bom.dependencyManagement?.dependencies?.forEach { dep ->
-            val dependency = dep.copy(groupId = eval(dep.groupId, { if (it == "project.groupId") bom.groupId ?: "" else bom.properties.getValue(it) }, { it }))
+            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { if (it == "project.groupId") bom.groupId ?: "" else bom.properties.getValue(it) }, { it }))
             if (dependency.scope == "import" && dependency.type == "pom") {
-                bomDownloader.download(dependency.copy(version = eval(dependency.version, { bom.properties.getValue(it) }, { it }))) { processBom(builder, it) }
+                bomDownloader.download(dependency.copy(version = evalBomVersion(dependency.version, { bom.properties.getValue(it) }, { it }))) { processBom(builder, it) }
             }
             builder.addDependency(dependency, bom.version ?: "")
         }
     }
 
-    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String, withVersion: Boolean = false): String {
+    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String): String {
         val alias: String = dependency.groupId.toCamelCase() + "-" + dependency.artifactId.toCamelCase()
         if (!existingAliases.contains(alias)) {
             existingAliases.add(alias)
-            val dep = alias(alias).to(dependency.groupId, dependency.artifactId)
-            if (withVersion) {
-                eval(
-                    dependency.version,
-                    { if (it == "project.version") dep.version(projectVersion) else dep.versionRef(it.toVersionName()) },
-                    { dep.version(it) })
-            } else {
-                dep.withoutVersion()
-            }
+            val library = library(alias, dependency.groupId, dependency.artifactId)
+            evalBomVersion(
+                dependency.version,
+                { if (it == "project.version") library.version(projectVersion) else library.versionRef(it.toVersionName()) },
+                { library.version(it) })
         }
         return alias
     }
@@ -149,7 +138,7 @@ private class AliasImport(val alias: String) : Import {
     }
 }
 
-private fun <T> eval(value: String, processRef: (String) -> T, processDirect: (String) -> T): T {
+private fun <T> evalBomVersion(value: String, processRef: (String) -> T, processDirect: (String) -> T): T {
     val match = Regex("\\$\\{(.*)}").matchEntire(value)
     return if (match != null) {
         processRef(match.groupValues[1])
@@ -158,11 +147,10 @@ private fun <T> eval(value: String, processRef: (String) -> T, processDirect: (S
     }
 }
 
-private fun String.endsWithAny(vararg suffixes: String, ignoreCase: Boolean = false) = suffixes.any { endsWith(it, ignoreCase) }
-
 private fun String.toVersionName() = removeSuffix(".version").toCamelCase()
 
 private fun VersionConstraint.copyTo(receiver: MutableVersionConstraint) {
+    branch?.takeIf { it.isNotEmpty() }?.let { receiver.branch = it }
     requiredVersion.takeIf { it.isNotEmpty() }?.let { receiver.require(it) }
     strictVersion.takeIf { it.isNotEmpty() }?.let { receiver.strictly(it) }
     preferredVersion.takeIf { it.isNotEmpty() }?.let { receiver.prefer(it) }
