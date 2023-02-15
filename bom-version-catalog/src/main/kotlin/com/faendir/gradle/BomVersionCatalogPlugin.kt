@@ -5,6 +5,5 @@ import org.gradle.api.initialization.Settings
 
 class BomVersionCatalogPlugin : Plugin<Settings> {
     override fun apply(settings: Settings) {
-        settings.enableFeaturePreview("VERSION_CATALOGS")
     }
 }
