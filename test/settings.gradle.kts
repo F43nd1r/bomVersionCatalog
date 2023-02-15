@@ -2,11 +2,11 @@ import com.faendir.gradle.createWithBomSupport
 
 buildscript {
     repositories {
-        mavenCentral()
+        gradlePluginPortal()
         mavenLocal()
     }
     dependencies {
-        classpath("com.faendir.gradle:bom-version-catalog:1.2.0")
+        classpath("com.faendir.gradle:bom-version-catalog:1.4.4")
     }
 }
 apply(plugin = "com.faendir.gradle.bom-version-catalog")
