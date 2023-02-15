@@ -40,11 +40,10 @@ gradlePlugin {
     }
 }
 
-/*pluginBundle {
-    website = "https://github.com/F43nd1r/bomVersionCatalog"
-    vcsUrl = "https://github.com/F43nd1r/bomVersionCatalog"
-    tags = listOf("bom", "version-catalog")
-}*/
+gradlePlugin {
+    website.set("https://github.com/F43nd1r/bomVersionCatalog")
+    vcsUrl.set("https://github.com/F43nd1r/bomVersionCatalog")
+}
 
 
 
