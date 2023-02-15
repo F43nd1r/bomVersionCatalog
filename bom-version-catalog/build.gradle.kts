@@ -13,8 +13,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.14.3")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.14.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
     implementation("net.pearx.kasechange:kasechange:1.3.0")
 }
 
