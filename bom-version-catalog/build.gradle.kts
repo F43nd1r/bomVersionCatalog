@@ -30,19 +30,17 @@ java {
 }
 
 gradlePlugin {
+    website.set("https://github.com/F43nd1r/bomVersionCatalog")
+    vcsUrl.set("https://github.com/F43nd1r/bomVersionCatalog")
     plugins {
         create("BomVersionCatalogPlugin") {
             id = "com.faendir.gradle.bom-version-catalog"
             displayName = "Bom to version catalog plugin"
             description = "Allows to import boms as version catalogs"
             implementationClass = "com.faendir.gradle.BomVersionCatalogPlugin"
+            tags.set(listOf("bom", "version-catalog"))
         }
     }
-}
-
-gradlePlugin {
-    website.set("https://github.com/F43nd1r/bomVersionCatalog")
-    vcsUrl.set("https://github.com/F43nd1r/bomVersionCatalog")
 }
 
 
