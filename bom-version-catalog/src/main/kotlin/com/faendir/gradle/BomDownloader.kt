@@ -11,6 +11,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.FileUtils
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -25,7 +26,7 @@ class BomDownloader(private val name: String,
                     private val withContext: (String, Runnable) -> Unit) {
     private var count = 0
     private val drs by lazy { dependencyResolutionServicesSupplier.get() }
-    private val xml = XmlMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(KotlinModule())
+    private val xml = XmlMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(KotlinModule.Builder().build())
 
     fun download(dependency: com.faendir.gradle.Dependency, process: (Bom) -> Unit) : Dependency {
         return download("${dependency.groupId}:${dependency.artifactId}:${dependency.version}", process)
@@ -62,7 +63,7 @@ class BomDownloader(private val name: String,
     }
 
     private fun createResolvableConfiguration(drs: DependencyResolutionServices): Configuration {
-        val cnf = drs.configurationContainer.create("incomingBomFor${name.capitalize()}${count++}")
+        val cnf = drs.configurationContainer.create("incomingBomFor${name.capitalized()}${count++}")
         cnf.resolutionStrategy.activateDependencyLocking()
         cnf.attributes { it.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.REGULAR_PLATFORM)) }
         cnf.isCanBeResolved = true

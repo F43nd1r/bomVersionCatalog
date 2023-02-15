@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    kotlin("jvm") version "1.8.0"
     `java-gradle-plugin`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "0.18.0"
+    id("com.gradle.plugin-publish") version "1.1.0"
     id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
@@ -19,8 +19,6 @@ dependencies {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -42,11 +40,11 @@ gradlePlugin {
     }
 }
 
-pluginBundle {
+/*pluginBundle {
     website = "https://github.com/F43nd1r/bomVersionCatalog"
     vcsUrl = "https://github.com/F43nd1r/bomVersionCatalog"
     tags = listOf("bom", "version-catalog")
-}
+}*/
 
 
 

@@ -38,10 +38,6 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     override fun version(name: String, version: String): String = delegate.version(name, version)
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun alias(alias: String): VersionCatalogBuilder.AliasBuilder = delegate.alias(alias)
-
     override fun library(alias: String, group: String, artifact: String): VersionCatalogBuilder.LibraryAliasBuilder = delegate.library(alias, group, artifact)
 
     override fun library(alias: String, groupArtifactVersion: String) = delegate.library(alias, groupArtifactVersion)
