@@ -15,7 +15,7 @@ repositories {
 dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.16.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-    implementation("net.pearx.kasechange:kasechange:1.3.0")
+    implementation("net.pearx.kasechange:kasechange:1.4.1")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
