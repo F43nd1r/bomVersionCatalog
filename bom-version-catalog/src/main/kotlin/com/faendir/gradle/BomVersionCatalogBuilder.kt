@@ -94,9 +94,12 @@ open class BomVersionCatalogBuilder @Inject constructor(
         bom.parent?.let { parent -> bomDownloader.download(parent) { processBom(builder, it) } }
         bom.properties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
         bom.dependencyManagement?.dependencies?.forEach { dep ->
-            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { if (it == "project.groupId") bom.groupId ?: "" else bom.properties.getValue(it) }, { it }))
+            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { (if (it == "project.groupId") bom.groupId else bom.properties[it]) ?: "" }, { it }))
             if (dependency.scope == "import" && dependency.type == "pom") {
-                bomDownloader.download(dependency.copy(version = evalBomVersion(dependency.version, { bom.properties.getValue(it) }, { it }))) { processBom(builder, it) }
+                val version = evalBomVersion(dependency.version, { bom.properties[it] }, { it })
+                if (version != null) {
+                    bomDownloader.download(dependency.copy(version = version)) { processBom(builder, it) }
+                }
             }
             builder.addDependency(dependency, bom.version ?: "")
         }
