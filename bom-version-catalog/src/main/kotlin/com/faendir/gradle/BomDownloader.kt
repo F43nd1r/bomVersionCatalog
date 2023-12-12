@@ -10,10 +10,8 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.FileUtils
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.UncheckedIOException
@@ -21,7 +19,6 @@ import java.util.function.Supplier
 
 class BomDownloader(private val name: String,
                     private val objects: ObjectFactory,
-                    private val providers: ProviderFactory,
                     private val dependencyResolutionServicesSupplier: Supplier<DependencyResolutionServices>,
                     private val withContext: (String, Runnable) -> Unit) {
     private var count = 0
@@ -52,11 +49,8 @@ class BomDownloader(private val name: String,
         if (!modelFile.exists()) {
             throw IllegalStateException("Import of external catalog file failed because File '$modelFile' doesn't exist")
         }
-        val srcProp = objects.fileProperty()
-        srcProp.set(modelFile)
-        val dataSource = providers.fileContents(srcProp).asBytes.forUseAtConfigurationTime()
         return try {
-            xml.readValue(ByteArrayInputStream(dataSource.get()), Bom::class.java)
+            xml.readValue(modelFile.bufferedReader(), Bom::class.java)
         } catch (e: IOException) {
             throw UncheckedIOException(e)
         }

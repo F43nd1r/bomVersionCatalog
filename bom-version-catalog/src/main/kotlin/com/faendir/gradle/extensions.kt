@@ -11,18 +11,13 @@ private fun MutableVersionCatalogContainer.createBomCatalogBuilder(name: String)
     return objects.newInstance(
         BomVersionCatalogBuilder::class.java,
         name,
-        objects,
-        providers,
         dependencyResolutionServices,
         this
     )
-
 }
 
 private val MutableVersionCatalogContainer.objects: ObjectFactory
     get() = accessField("objects")
-private val MutableVersionCatalogContainer.providers: Any
-    get() = accessField("providers")
 private val MutableVersionCatalogContainer.dependencyResolutionServices: Any
     get() = accessField("dependencyResolutionServices")
 

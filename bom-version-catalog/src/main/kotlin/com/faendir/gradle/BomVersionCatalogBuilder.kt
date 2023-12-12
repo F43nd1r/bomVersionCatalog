@@ -12,22 +12,20 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
 import java.util.function.Supplier
 import javax.inject.Inject
 
 open class BomVersionCatalogBuilder @Inject constructor(
     private val name: String,
-    objects: ObjectFactory,
-    providers: ProviderFactory,
     dependencyResolutionServicesSupplier: Supplier<DependencyResolutionServices>,
-    private val container: MutableVersionCatalogContainer
+    private val container: MutableVersionCatalogContainer,
+    objects: ObjectFactory,
 ) : VersionCatalogBuilderInternal {
     private val delegate = container.create(name).also { container.remove(it) } as VersionCatalogBuilderInternal
     private val imports: MutableList<Import> = mutableListOf()
     private val existingAliases = mutableListOf<String>()
-    private val bomDownloader = BomDownloader(delegate.name, objects, providers, dependencyResolutionServicesSupplier, delegate::withContext)
+    private val bomDownloader = BomDownloader(delegate.name, objects, dependencyResolutionServicesSupplier, delegate::withContext)
     override fun getName(): String = delegate.name
 
     override fun getDescription(): Property<String> = delegate.description

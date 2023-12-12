@@ -42,7 +42,3 @@ gradlePlugin {
         }
     }
 }
-
-
-
-project.configurations.detachedConfiguration()
