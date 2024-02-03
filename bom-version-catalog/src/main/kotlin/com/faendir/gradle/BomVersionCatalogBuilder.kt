@@ -92,11 +92,12 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     private fun processBom(builder: VersionCatalogBuilderInternal, bom: Bom) {
         bom.parent?.let { parent -> bomDownloader.download(parent) { processBom(builder, it) } }
-        bom.properties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
+        val properties = evaluateProperties(bom.properties)
+        properties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
         bom.dependencyManagement?.dependencies?.forEach { dep ->
-            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { (if (it == "project.groupId") bom.groupId else bom.properties[it]) ?: "" }, { it }))
+            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { (if (it == "project.groupId") bom.groupId else properties[it]) ?: "" }, { it }))
             if (dependency.scope == "import" && dependency.type == "pom") {
-                val version = evalBomVersion(dependency.version, { bom.properties[it] }, { it })
+                val version = evalBomVersion(dependency.version, { properties[it] }, { it })
                 if (version != null) {
                     bomDownloader.download(dependency.copy(version = version)) { processBom(builder, it) }
                 }
@@ -135,13 +136,36 @@ private class AliasImport(val alias: String) : Import {
     }
 }
 
+private fun matchStringInterpolation(value: String): MatchResult? = Regex("\\$\\{(.*)}").matchEntire(value)
+
 private fun <T> evalBomVersion(value: String, processRef: (String) -> T, processDirect: (String) -> T): T {
-    val match = Regex("\\$\\{(.*)}").matchEntire(value)
+    val match = matchStringInterpolation(value)
     return if (match != null) {
         processRef(match.groupValues[1])
     } else {
         processDirect(value)
     }
+}
+
+private fun evaluateProperties(inputProperties: Map<String, String>): Map<String, String> {
+    val properties = inputProperties.toMutableMap()
+    var replacementsOccurred: Boolean
+
+    do {
+        replacementsOccurred = false
+        for ((key, value) in properties) {
+            val match = matchStringInterpolation(value)
+            if (match != null) {
+                val matchedKey = match.groupValues[1]
+                if (properties.containsKey(matchedKey)) {
+                    properties[key] = value.replace(match.value, properties[matchedKey]!!)
+                    replacementsOccurred = true
+                }
+            }
+        }
+    } while (replacementsOccurred)
+
+    return properties.toMap()
 }
 
 private fun String.toVersionName() = removeSuffix(".version").toCamelCase()

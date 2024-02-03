@@ -1,6 +1,8 @@
 [versions]
-springBoot = "2.5.1"
+jackson = "2.16.1"
 querydsl = "5.0.0"
+springBoot = "2.5.1"
 
 [libraries]
+jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 springBom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }

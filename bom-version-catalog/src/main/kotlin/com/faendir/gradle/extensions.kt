@@ -21,6 +21,7 @@ private val MutableVersionCatalogContainer.objects: ObjectFactory
 private val MutableVersionCatalogContainer.dependencyResolutionServices: Any
     get() = accessField("dependencyResolutionServices")
 
+@Suppress("UNCHECKED_CAST")
 private fun <T> MutableVersionCatalogContainer.accessField(name: String): T {
     return this.javaClass.superclass.getDeclaredField(name).apply { isAccessible = true }.get(this) as T
 }
