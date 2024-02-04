@@ -24,6 +24,7 @@ open class BomVersionCatalogBuilder @Inject constructor(
 ) : VersionCatalogBuilderInternal {
     private val delegate = container.create(name).also { container.remove(it) } as VersionCatalogBuilderInternal
     private val imports: MutableList<Import> = mutableListOf()
+    private val importPredicates: MutableList<(String) -> Boolean> = mutableListOf()
     private val existingAliases = mutableListOf<String>()
     private val bomDownloader = BomDownloader(delegate.name, objects, dependencyResolutionServicesSupplier, delegate::withContext)
     override fun getName(): String = delegate.name
@@ -58,6 +59,9 @@ open class BomVersionCatalogBuilder @Inject constructor(
                 library.versionRef?.let { versionRef(it) } ?: version { library.version.copyTo(it) }
             }
         }
+        importPredicates.forEach { predicate ->
+            catalog.libraryAliases.filter(predicate).forEach(::fromBomAlias)
+        }
         catalog.pluginAliases.forEach { alias ->
             val plugin = catalog.getPlugin(alias)
             intermediateBuilder.plugin(alias, catalog.getPlugin(alias).id).apply {
@@ -77,6 +81,10 @@ open class BomVersionCatalogBuilder @Inject constructor(
 
     open fun fromBomAlias(alias: String) {
         imports.add(AliasImport(alias))
+    }
+
+    open fun fromBomAliasesFilter(predicate: (String) -> Boolean) {
+        importPredicates.add(predicate)
     }
 
     private fun maybeImportBomCatalogs(catalog: DefaultVersionCatalog, builder: VersionCatalogBuilderInternal) {
