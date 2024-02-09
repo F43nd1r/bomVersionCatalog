@@ -19,6 +19,7 @@ dependencyResolutionManagement {
         createWithBomSupport("libs") {
             fromBom("com.vaadin:vaadin-bom:20.0.1") // either directly specify your bom
             fromBomAlias("springBootBom") // or use definition in toml
+            fromBomAliasesMatching(".*Bom") // or use a regex to use all aliases matching it from toml
             version("mockito","3.9.1") // overrides both bom and toml
         }
     }

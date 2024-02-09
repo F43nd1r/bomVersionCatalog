@@ -14,6 +14,7 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.internal.management.VersionCatalogBuilderInternal
+import org.intellij.lang.annotations.Language
 import java.util.function.Supplier
 import javax.inject.Inject
 
@@ -80,13 +81,22 @@ open class BomVersionCatalogBuilder @Inject constructor(
         imports.add(AliasImport(alias))
     }
 
+    open fun fromBomAliasesMatching(@Language("regex") pattern: String) {
+        imports.add(AliasesMatchingImport(pattern))
+    }
+
     private fun maybeImportBomCatalogs(catalog: DefaultVersionCatalog, builder: VersionCatalogBuilderInternal) {
         if (imports.isEmpty()) {
             return
         }
         builder.bundle("bom",
-            imports.map { import ->
-                val dependency = bomDownloader.download(import.getNotation(catalog)) { processBom(builder, it) }
+            imports.flatMap {
+                when (val notation = it.getNotation(catalog)) {
+                    is Iterable<*> -> notation.filterNotNull()
+                    else -> listOf(notation)
+                }
+            }.map { import ->
+                val dependency = bomDownloader.download(import) { processBom(builder, it) }
                 builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), NoContextPropertyEvaluator)
             })
     }
@@ -127,19 +137,26 @@ open class BomVersionCatalogBuilder @Inject constructor(
     }
 }
 
-private interface Import {
+private sealed interface Import {
     fun getNotation(catalog: DefaultVersionCatalog): Any
 }
 
-private class DirectImport(val notation: Any) : Import {
+private class DirectImport(private val notation: Any) : Import {
     override fun getNotation(catalog: DefaultVersionCatalog): Any = notation
 
 }
 
-private class AliasImport(val alias: String) : Import {
+private class AliasImport(private val alias: String) : Import {
     override fun getNotation(catalog: DefaultVersionCatalog): Any {
         val data = catalog.getDependencyData(alias) ?: throw IllegalArgumentException("Unknown bom alias $alias")
         return "${data.group}:${data.name}:${(data.versionRef?.let { catalog.getVersion(it).version } ?: data.version).requiredVersion}"
+    }
+}
+
+private class AliasesMatchingImport(pattern: String) : Import {
+    private val regex = pattern.toRegex()
+    override fun getNotation(catalog: DefaultVersionCatalog): Any {
+        return catalog.libraryAliases.filter { it.matches(regex) }.map { alias -> AliasImport(alias).getNotation(catalog) }
     }
 }
 
