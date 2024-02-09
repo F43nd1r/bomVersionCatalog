@@ -13,6 +13,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         createWithBomSupport("libs") {
+            fromBomAlias("jacksonBom")
             // fromBom("org.springframework.boot:spring-boot-dependencies:2.5.0")
             fromBomAlias("springBom")
         }

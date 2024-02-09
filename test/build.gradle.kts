@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(libs.comQuerydsl.querydslJpa)
+    implementation(libs.comFasterxmlJacksonDatatype.jacksonDatatypeJdk8)
 }
 
 tasks.getByName<Test>("test") {

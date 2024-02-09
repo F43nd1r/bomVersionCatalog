@@ -2,6 +2,7 @@
 
 package com.faendir.gradle
 
+import com.faendir.gradle.Property.*
 import net.pearx.kasechange.toCamelCase
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MutableVersionConstraint
@@ -86,34 +87,41 @@ open class BomVersionCatalogBuilder @Inject constructor(
         builder.bundle("bom",
             imports.map { import ->
                 val dependency = bomDownloader.download(import.getNotation(catalog)) { processBom(builder, it) }
-                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), dependency.version ?: "")
+                builder.addDependency(Dependency(dependency.group ?: "", dependency.name, dependency.version ?: ""), NoContextPropertyEvaluator)
             })
     }
 
-    private fun processBom(builder: VersionCatalogBuilderInternal, bom: Bom) {
-        bom.parent?.let { parent -> bomDownloader.download(parent) { processBom(builder, it) } }
-        bom.properties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
+    private fun processBom(builder: VersionCatalogBuilderInternal, bom: Bom): Map<String, String> {
+        val allProperties = mutableMapOf<String, String>()
+        bom.parent?.let { parent -> bomDownloader.download(parent) { allProperties.putAll(processBom(builder, it)) } }
+        val propertyEvaluator = BomPropertyEvaluator(bom, allProperties)
+        val bomProperties = bom.properties.mapValues { (_, value) -> propertyEvaluator.evaluateRecursively(value) }
+        bomProperties.forEach { (name, value) -> builder.version(name.toVersionName(), value) }
+        allProperties.putAll(bomProperties)
+
         bom.dependencyManagement?.dependencies?.forEach { dep ->
-            val dependency = dep.copy(groupId = evalBomVersion(dep.groupId, { (if (it == "project.groupId") bom.groupId else bom.properties[it]) ?: "" }, { it }))
+            val dependency = dep.copy(groupId = propertyEvaluator.evaluateRecursively(dep.groupId))
             if (dependency.scope == "import" && dependency.type == "pom") {
-                val version = evalBomVersion(dependency.version, { bom.properties[it] }, { it })
-                if (version != null) {
+                val version = propertyEvaluator.evaluateRecursively(dependency.version)
+                if (version.isNotBlank()) {
                     bomDownloader.download(dependency.copy(version = version)) { processBom(builder, it) }
                 }
             }
-            builder.addDependency(dependency, bom.version ?: "")
+            builder.addDependency(dependency, propertyEvaluator)
         }
+        return allProperties
     }
 
-    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, projectVersion: String): String {
+    private fun VersionCatalogBuilderInternal.addDependency(dependency: Dependency, propertyEvaluator: PropertyEvaluator): String {
         val alias: String = dependency.groupId.toCamelCase() + "-" + dependency.artifactId.toCamelCase()
         if (!existingAliases.contains(alias)) {
             existingAliases.add(alias)
             val library = library(alias, dependency.groupId, dependency.artifactId)
-            evalBomVersion(
-                dependency.version,
-                { if (it == "project.version") library.version(projectVersion) else library.versionRef(it.toVersionName()) },
-                { library.version(it) })
+            when (val version = propertyEvaluator.evaluate(dependency.version)) {
+                is Interpolation -> library.versionRef(version.expression.toVersionName())
+                is Literal -> library.version(version.value)
+                is Mixed -> library.version(propertyEvaluator.evaluateRecursively(version))
+            }
         }
         return alias
     }
@@ -132,15 +140,6 @@ private class AliasImport(val alias: String) : Import {
     override fun getNotation(catalog: DefaultVersionCatalog): Any {
         val data = catalog.getDependencyData(alias) ?: throw IllegalArgumentException("Unknown bom alias $alias")
         return "${data.group}:${data.name}:${(data.versionRef?.let { catalog.getVersion(it).version } ?: data.version).requiredVersion}"
-    }
-}
-
-private fun <T> evalBomVersion(value: String, processRef: (String) -> T, processDirect: (String) -> T): T {
-    val match = Regex("\\$\\{(.*)}").matchEntire(value)
-    return if (match != null) {
-        processRef(match.groupValues[1])
-    } else {
-        processDirect(value)
     }
 }
 
