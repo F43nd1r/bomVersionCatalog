@@ -19,5 +19,4 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           job-id: jdk11
-          arguments: check
-          build-root-directory: test
+          arguments: :test:check
