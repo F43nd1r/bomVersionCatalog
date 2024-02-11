@@ -1,0 +1,1 @@
+includeBuild("./bom-version-catalog")
