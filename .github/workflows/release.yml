@@ -22,8 +22,7 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
         with:
           job-id: jdk11
-          arguments: build publishPlugins
-          build-root-directory: bom-version-catalog
+          arguments: :bom-version-catalog:build :bom-version-catalog:publishPlugins
           properties: |
             gradle.publish.key=${{ secrets.GRADLE_KEY }}
             gradle.publish.secret=${{ secrets.GRADLE_SECRET }}
