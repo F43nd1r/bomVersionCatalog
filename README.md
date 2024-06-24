@@ -2,6 +2,9 @@
 
 This plugin allows you to combine the type safety of version catalogs with existing BOMs by importing them into version catalogs.
 
+> [!NOTE]
+> Deprecated in favor of [version-catalog-generator](https://github.com/austinarbor/version-catalog-generator). No more updates here.
+
 ## Usage
 
 settings.gradle.kts
